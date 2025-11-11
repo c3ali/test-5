@@ -148,7 +148,7 @@
 <script>
 import { getBoardById } from '../api/boards'
 import { getAllLists, createList as createListAPI } from '../api/lists'
-import { getListCards, createCard, updateCard, deleteCard as deleteCardAPI } from '../api/cards'
+import { getListCards, createCard, updateCard, deleteCard as deleteCardAPI } from '../api/kanban-cards'
 import Sortable from 'sortablejs'
 
 export default {
@@ -193,7 +193,10 @@ export default {
         const boardId = this.$route.params.id
 
         this.board = await getBoardById(boardId)
-        this.lists = await getAllLists(boardId)
+
+        // Récupérer toutes les listes et filtrer par board_id
+        const allLists = await getAllLists()
+        this.lists = allLists.filter(list => list.board_id === boardId)
 
         // Charger les cartes pour chaque liste
         const cardsPromises = this.lists.map(list =>
@@ -219,9 +222,10 @@ export default {
 
     async createList() {
       try {
-        const newList = await createListAPI(this.board.id, {
+        const newList = await createListAPI({
           name: this.newList.name,
-          position: this.lists.length
+          position: this.lists.length,
+          board_id: this.board.id
         })
 
         this.lists.push(newList)

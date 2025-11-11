@@ -1,11 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import UsersService from '../api/users'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/Home.vue'),
-    meta: { title: 'Kanban Board - Accueil' }
+    redirect: '/boards'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../components/Login.vue'),
+    meta: { title: 'Connexion - Kanban Board', requiresGuest: true }
+  },
+  {
+    path: '/boards',
+    name: 'BoardList',
+    component: () => import('../views/BoardList.vue'),
+    meta: { title: 'Mes Tableaux - Kanban Board', requiresAuth: true }
+  },
+  {
+    path: '/board/:id',
+    name: 'KanbanBoard',
+    component: () => import('../views/KanbanBoard.vue'),
+    meta: { title: 'Tableau Kanban', requiresAuth: true }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -20,10 +37,24 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard
+// Navigation guard pour l'authentification
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title || 'Kanban Board'
-  next()
+
+  const isAuthenticated = UsersService.isAuthenticated()
+
+  // Si la route nécessite l'authentification
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+  }
+  // Si la route est pour les invités (login) et l'utilisateur est déjà connecté
+  else if (to.meta.requiresGuest && isAuthenticated) {
+    next('/boards')
+  }
+  // Sinon, continuer normalement
+  else {
+    next()
+  }
 })
 
 export default router
