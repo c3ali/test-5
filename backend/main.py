@@ -71,13 +71,18 @@ app.include_router(
 #     tags=["Labels"]
 # )
 
-# Servir les fichiers statiques du frontend en production
-dist_path = Path(__file__).parent.parent / "dist"
-if dist_path.exists():
-    app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
-    app.mount("/", StaticFiles(directory=str(dist_path), html=True), name="frontend")
-
 # Endpoints de base
+@app.get("/", tags=["Root"])
+async def root():
+    """Endpoint racine - redirige vers la documentation"""
+    return {
+        "message": "Bienvenue sur l'API Kanban Board",
+        "status": "running",
+        "documentation": "/docs",
+        "api_docs": "/redoc",
+        "health": "/api/health"
+    }
+
 @app.get("/api", tags=["Root"])
 async def read_root():
     """Endpoint racine - vérifie que l'API fonctionne"""
@@ -86,6 +91,13 @@ async def read_root():
         "docs": "/docs",
         "redoc": "/redoc"
     }
+
+# Servir les fichiers statiques du frontend en production
+# NOTE: This is mounted after API routes so API routes take precedence
+dist_path = Path(__file__).parent.parent / "dist"
+if dist_path.exists():
+    app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
+    # Don't mount at "/" as it would override all routes
 
 @app.get("/api/health", tags=["Health"])
 async def health_check():
