@@ -64,6 +64,14 @@
           {{ isRegister ? 'Se connecter' : 'Créer un compte' }}
         </a>
       </p>
+
+      <div class="demo-mode">
+        <hr class="divider">
+        <button @click="enterDemoMode" type="button" class="btn-demo">
+          🚀 Accéder en mode démo
+        </button>
+        <p class="demo-note">Mode démo : accès direct sans authentification</p>
+      </div>
     </div>
   </div>
 </template>
@@ -92,6 +100,25 @@ export default {
     toggleMode() {
       this.isRegister = !this.isRegister
       this.error = null
+    },
+
+    enterDemoMode() {
+      // Créer un utilisateur démo factice
+      const demoUser = {
+        id: 'demo-user-123',
+        email: 'demo@kanban.com',
+        first_name: 'Démo',
+        last_name: 'Utilisateur',
+        role: 'user',
+        is_active: true
+      }
+
+      // Stocker un token factice et l'utilisateur
+      localStorage.setItem('token', 'demo-token-no-auth-required')
+      localStorage.setItem('user', JSON.stringify(demoUser))
+
+      // Rediriger vers le dashboard
+      this.$router.push('/boards')
     },
 
     async handleSubmit() {
@@ -231,5 +258,41 @@ export default {
 
 .toggle-mode a:hover {
   text-decoration: underline;
+}
+
+.demo-mode {
+  margin-top: 30px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 20px 0;
+}
+
+.btn-demo {
+  width: 100%;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 10px;
+}
+
+.btn-demo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+}
+
+.demo-note {
+  text-align: center;
+  color: #888;
+  font-size: 0.85em;
+  margin: 0;
 }
 </style>
