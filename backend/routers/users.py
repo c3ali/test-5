@@ -8,7 +8,7 @@ from typing import Annotated
 
 from backend.database import get_db
 from backend.models import User
-from backend.schemas import UserCreate, UserResponse, Token
+from backend.schemas import UserCreate, Token
 from backend.core.security import (
     create_access_token,
     get_password_hash,
