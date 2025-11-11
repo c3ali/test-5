@@ -1,0 +1,23 @@
+{
+  "name": "test-5",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview --port $PORT --host 0.0.0.0"
+  },
+  "dependencies": {
+    "vue": "^3.4.15",
+    "vue-router": "^4.2.5",
+    "vuex": "^4.1.0",
+    "axios": "^1.6.5",
+    "sortablejs": "^1.15.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.3",
+    "vite": "^5.0.12"
+  }
+}
