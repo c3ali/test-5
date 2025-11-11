@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- Titre de l'application -->
+    <title>Mon Application</title>
+    
+    <!-- Description SEO -->
+    <meta name="description" content="Description de mon application web">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
+    
+    <!-- Thème mobile (couleur de la barre d'adresse) -->
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- PWA - Web App Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Open Graph pour le partage social -->
+    <meta property="og:title" content="Mon Application">
+    <meta property="og:description" content="Description de mon application web">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/preview.jpg">
+    
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preload" href="/src/main.js" as="script">
+    <link rel="preload" href="/src/assets/styles/main.css" as="style">
+    
+    <!-- Styles principaux -->
+    <link rel="stylesheet" href="/src/assets/styles/main.css">
+</head>
+<body>
+    <!-- 
+        POINT DE MONTAGE DE L'APPLICATION
+        C'est ici que votre framework JavaScript (Vue, React, etc.) 
+        rendra l'application. Ne pas modifier ou supprimer cet élément.
+    -->
+    <div id="app">
+        <!-- Contenu de secours affiché pendant le chargement -->
+        <div class="loading-overlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Chargement de l'application...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 
+        SCRIPTS DE L'APPLICATION
+        Le script principal est typiquement chargé ici.
+        En développement : utilisez le serveur de dev (ex: Vite, Webpack)
+        En production : chemin vers le bundle compilé
+    -->
+    <script type="module" src="/src/main.js"></script>
+    
+    <!-- 
+        VARIABLES D'ENVIRONNEMENT (optionnel)
+        Utile pour passer des variables du backend au frontend
+    -->
+    <script>
+        // window.APP_CONFIG = {
+        //   API_URL: 'https://api.example.com',
+        //   ENV: 'production'
+        // };
+    </script>
+</body>
+</html>
