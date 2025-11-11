@@ -11,7 +11,7 @@ from uuid import UUID
 
 from backend.database import get_db
 from backend.models import User
-from backend.auth import verify_token
+from backend.core.security import verify_token
 
 # Security scheme for JWT token
 security = HTTPBearer()
@@ -24,6 +24,8 @@ async def get_current_user(
     """
     Dependency to get the current authenticated user from JWT token.
 
+    Supports demo mode with token 'demo-token-no-auth-required'.
+
     Args:
         credentials: JWT token from Authorization header
         db: Database session
@@ -35,6 +37,19 @@ async def get_current_user(
         HTTPException: If token is invalid or user not found
     """
     token = credentials.credentials
+
+    # Check for demo mode token
+    if token == "demo-token-no-auth-required":
+        # Return a fake demo user without database access
+        demo_user = User()
+        demo_user.id = UUID("00000000-0000-0000-0000-000000000001")
+        demo_user.email = "demo@kanban.com"
+        demo_user.first_name = "Démo"
+        demo_user.last_name = "Utilisateur"
+        demo_user.role = "user"
+        demo_user.is_active = True
+        demo_user.hashed_password = ""
+        return demo_user
 
     # Verify and decode the token
     payload = verify_token(token)
@@ -129,6 +144,8 @@ def get_optional_current_user(
     Dependency to optionally get the current user.
     Returns None if no token is provided or token is invalid.
 
+    Supports demo mode with token 'demo-token-no-auth-required'.
+
     Args:
         credentials: Optional JWT token from Authorization header
         db: Database session
@@ -140,6 +157,19 @@ def get_optional_current_user(
         return None
 
     token = credentials.credentials
+
+    # Check for demo mode token
+    if token == "demo-token-no-auth-required":
+        demo_user = User()
+        demo_user.id = UUID("00000000-0000-0000-0000-000000000001")
+        demo_user.email = "demo@kanban.com"
+        demo_user.first_name = "Démo"
+        demo_user.last_name = "Utilisateur"
+        demo_user.role = "user"
+        demo_user.is_active = True
+        demo_user.hashed_password = ""
+        return demo_user
+
     payload = verify_token(token)
     if not payload:
         return None
