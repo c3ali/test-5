@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { login, register } from '../api/users'
+import UsersService from '../api/users'
 
 export default {
   name: 'Login',
@@ -99,28 +99,20 @@ export default {
       this.loading = true
 
       try {
-        let response
-
         if (this.isRegister) {
-          response = await register(this.form)
+          await UsersService.register(this.form)
         } else {
-          response = await login({
+          await UsersService.login({
             email: this.form.email,
             password: this.form.password
           })
         }
 
-        // Stocker le token
-        if (response.access_token) {
-          localStorage.setItem('authToken', response.access_token)
-          // Rediriger vers le dashboard
-          this.$router.push('/boards')
-        }
+        // Rediriger vers le dashboard (le token est déjà stocké par UsersService)
+        this.$router.push('/boards')
       } catch (err) {
         console.error('Auth error:', err)
-        this.error = err.response?.data?.detail ||
-                     err.response?.data?.message ||
-                     'Une erreur est survenue. Veuillez réessayer.'
+        this.error = err.message || 'Une erreur est survenue. Veuillez réessayer.'
       } finally {
         this.loading = false
       }

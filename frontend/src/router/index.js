@@ -4,15 +4,14 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import(/* webpackChunkName: "home" */ '../views/Home.vue'),
-    meta: {
-      title: 'Accueil'
-    }
+    component: () => import('../views/Home.vue'),
+    meta: { title: 'Kanban Board - Accueil' }
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import(/* webpackChunkName: "notfound" */ '../views/NotFound.vue')
+    component: () => import('../views/NotFound.vue'),
+    meta: { title: '404' }
   }
 ]
 
@@ -23,7 +22,7 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title || 'Mon Application'
+  document.title = to.meta.title || 'Kanban Board'
   next()
 })
 
