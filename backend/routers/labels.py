@@ -8,10 +8,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from backend.database import get_db
-from backend.models.label import Label
+from backend.models import Label, User
 from backend.schemas.label import LabelCreate, LabelUpdate, LabelInDB
 from backend.dependencies.auth import get_current_active_user
-from backend.models.user import User
 
 router = APIRouter(
     prefix="/labels",

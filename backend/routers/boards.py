@@ -9,8 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from backend.database import get_db
-from backend.models.user import User
-from backend.models.board import Board, BoardMember
+from backend.models import User, Board
 from backend.schemas.board import (
     BoardCreate,
     BoardUpdate,
