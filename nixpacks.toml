@@ -10,8 +10,11 @@ cmds = [
 [phases.build]
 cmds = [
     "npm run build",
-    "ls -la dist/ || echo 'dist directory not found'",
+    "echo '=== Checking dist directory after build ==='",
+    "ls -la dist/ || echo 'ERROR: dist directory not found'",
+    "test -d dist && echo 'SUCCESS: dist directory exists' || echo 'ERROR: dist directory missing'",
+    "test -f dist/index.html && echo 'SUCCESS: index.html exists' || echo 'ERROR: index.html missing'",
 ]
 
 [start]
-cmd = "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+cmd = "echo '=== Starting application ===' && ls -la dist/ 2>/dev/null || echo 'WARNING: dist not found at startup' && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
