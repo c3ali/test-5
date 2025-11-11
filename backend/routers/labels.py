@@ -1,206 +1,133 @@
 """
-Endpoints API pour la gestion des étiquettes (labels)
-Permet les opérations CRUD sur les étiquettes utilisables pour catégoriser les images
+backend/routers/labels.py
+Endpoints API pour les opérations CRUD sur les labels Kanban
 """
-from typing import List, Optional
+
+from typing import List as ListType
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from backend.database import get_db
-from backend.models import Label, User
-from backend.schemas.label import LabelCreate, LabelUpdate, LabelInDB
+from backend.models import User, Board, Label
+from backend.schemas import LabelCreate, LabelUpdate, LabelResponse
 from backend.dependencies.auth import get_current_active_user
+from backend.core.permissions import get_board_or_404, check_board_access, BoardPermission
 
-router = APIRouter(
-    prefix="/labels",
-    tags=["étiquettes"],
-    dependencies=[Depends(get_current_active_user)]
-)
+router = APIRouter()
 
 
-@router.get(
-    "/",
-    response_model=List[LabelInDB],
-    summary="Récupérer toutes les étiquettes",
-    description="Retourne la liste de toutes les étiquettes disponibles"
-)
-async def get_labels(
-    skip: int = 0,
-    limit: int = 100,
+@router.get("/board/{board_id}/labels", response_model=ListType[LabelResponse])
+def get_board_labels(
+    board_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Récupère les étiquettes avec pagination
+    Récupère tous les labels d'un tableau.
     """
-    labels = db.query(Label).offset(skip).limit(limit).all()
+    board = get_board_or_404(db, board_id, current_user)
+    labels = db.query(Label).filter(Label.board_id == board_id).all()
     return labels
 
 
-@router.get(
-    "/{label_id}",
-    response_model=LabelInDB,
-    summary="Récupérer une étiquette par ID",
-    description="Retourne les détails d'une étiquette spécifique"
-)
-async def get_label(
-    label_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    """
-    Récupère une étiquette par son identifiant
-    """
-    label = db.query(Label).filter(Label.id == label_id).first()
-    if not label:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Étiquette avec l'ID {label_id} non trouvée"
-        )
-    return label
-
-
-@router.post(
-    "/",
-    response_model=LabelInDB,
-    status_code=status.HTTP_201_CREATED,
-    summary="Créer une nouvelle étiquette",
-    description="Crée une nouvelle étiquette avec les données fournies"
-)
-async def create_label(
+@router.post("/board/{board_id}/labels", response_model=LabelResponse, status_code=status.HTTP_201_CREATED)
+def create_label(
+    board_id: int,
     label_data: LabelCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Crée une nouvelle étiquette
+    Crée un nouveau label dans un tableau.
     """
-    # Vérifier si l'étiquette existe déjà
-    existing_label = db.query(Label).filter(Label.name == label_data.name).first()
-    if existing_label:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Une étiquette avec le nom '{label_data.name}' existe déjà"
-        )
-    
-    try:
-        db_label = Label(**label_data.dict())
-        db.add(db_label)
-        db.commit()
-        db.refresh(db_label)
-        return db_label
-    except IntegrityError as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur lors de la création de l'étiquette"
-        )
+    board = get_board_or_404(db, board_id, current_user)
+    check_board_access(board, current_user, BoardPermission.WRITE)
+
+    new_label = Label(
+        name=label_data.name,
+        color=label_data.color,
+        board_id=board_id
+    )
+
+    db.add(new_label)
+    db.commit()
+    db.refresh(new_label)
+    return new_label
 
 
-@router.put(
-    "/{label_id}",
-    response_model=LabelInDB,
-    summary="Mettre à jour une étiquette",
-    description="Met à jour les informations d'une étiquette existante"
-)
-async def update_label(
-    label_id: int,
-    label_data: LabelUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    """
-    Met à jour une étiquette existante
-    """
-    db_label = db.query(Label).filter(Label.id == label_id).first()
-    if not db_label:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Étiquette avec l'ID {label_id} non trouvée"
-        )
-    
-    # Vérifier les conflits de nom
-    if label_data.name:
-        existing_label = db.query(Label).filter(
-            Label.name == label_data.name,
-            Label.id != label_id
-        ).first()
-        if existing_label:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Une étiquette avec le nom '{label_data.name}' existe déjà"
-            )
-    
-    try:
-        update_data = label_data.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_label, field, value)
-        
-        db.commit()
-        db.refresh(db_label)
-        return db_label
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur lors de la mise à jour de l'étiquette"
-        )
-
-
-@router.delete(
-    "/{label_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Supprimer une étiquette",
-    description="Supprime définitivement une étiquette de la base de données"
-)
-async def delete_label(
+@router.get("/{label_id}", response_model=LabelResponse)
+def get_label(
     label_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Supprime une étiquette
+    Récupère les détails d'un label spécifique.
     """
-    db_label = db.query(Label).filter(Label.id == label_id).first()
-    if not db_label:
+    label = db.query(Label).filter(Label.id == label_id).first()
+    if not label:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Étiquette avec l'ID {label_id} non trouvée"
-        )
-    
-    try:
-        db.delete(db_label)
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Impossible de supprimer l'étiquette car elle est utilisée par une ou plusieurs images"
+            detail="Label non trouvé"
         )
 
+    # Vérifier l'accès au board
+    board = label.board
+    check_board_access(board, current_user, BoardPermission.READ)
 
-@router.get(
-    "/search/",
-    response_model=List[LabelInDB],
-    summary="Rechercher des étiquettes",
-    description="Recherche des étiquettes par nom avec filtrage"
-)
-async def search_labels(
-    name: Optional[str] = None,
-    color: Optional[str] = None,
+    return label
+
+
+@router.put("/{label_id}", response_model=LabelResponse)
+def update_label(
+    label_id: int,
+    label_update: LabelUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Recherche des étiquettes par nom ou couleur
+    Met à jour un label.
     """
-    query = db.query(Label)
-    
-    if name:
-        query = query.filter(Label.name.ilike(f"%{name}%"))
-    
-    if color:
-        query = query.filter(Label.color == color)
-    
-    return query.all()
+    label = db.query(Label).filter(Label.id == label_id).first()
+    if not label:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Label non trouvé"
+        )
+
+    # Vérifier l'accès au board
+    board = label.board
+    check_board_access(board, current_user, BoardPermission.WRITE)
+
+    update_data = label_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(label, field, value)
+
+    db.commit()
+    db.refresh(label)
+    return label
+
+
+@router.delete("/{label_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_label(
+    label_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Supprime un label.
+    """
+    label = db.query(Label).filter(Label.id == label_id).first()
+    if not label:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Label non trouvé"
+        )
+
+    # Vérifier l'accès au board
+    board = label.board
+    check_board_access(board, current_user, BoardPermission.WRITE)
+
+    db.delete(label)
+    db.commit()
+    return None

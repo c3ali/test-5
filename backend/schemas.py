@@ -204,6 +204,134 @@ class Message(BaseModel):
     detail: Optional[str] = None
 
 # ============================================================================
+# KANBAN - BOARDS
+# ============================================================================
+
+class BoardCreate(BaseModel):
+    """Schéma pour la création d'un board"""
+    name: str = Field(min_length=1, max_length=100)
+    description: Optional[str] = None
+    is_public: bool = False
+    background_color: str = Field(default="#FFFFFF", max_length=7, pattern=r'^#[0-9A-Fa-f]{6}$')
+
+class BoardUpdate(BaseModel):
+    """Schéma pour la mise à jour d'un board"""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = None
+    is_public: Optional[bool] = None
+    background_color: Optional[str] = Field(None, max_length=7, pattern=r'^#[0-9A-Fa-f]{6}$')
+
+class BoardOut(BaseModel):
+    """Schéma de sortie pour un board"""
+    id: int
+    name: str
+    description: Optional[str]
+    is_public: bool
+    background_color: str
+    owner_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+# ============================================================================
+# KANBAN - LISTS
+# ============================================================================
+
+class ListCreate(BaseModel):
+    """Schéma pour la création d'une liste"""
+    name: str = Field(min_length=1, max_length=100)
+    position: int = 0
+
+class ListUpdate(BaseModel):
+    """Schéma pour la mise à jour d'une liste"""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    position: Optional[int] = None
+
+class ListOut(BaseModel):
+    """Schéma de sortie pour une liste"""
+    id: int
+    name: str
+    position: int
+    board_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+# ============================================================================
+# KANBAN - CARDS
+# ============================================================================
+
+class CardCreate(BaseModel):
+    """Schéma pour la création d'une carte"""
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = None
+    position: int = 0
+    due_date: Optional[datetime] = None
+    is_archived: bool = False
+
+class CardUpdate(BaseModel):
+    """Schéma pour la mise à jour d'une carte"""
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+    position: Optional[int] = None
+    due_date: Optional[datetime] = None
+    is_archived: Optional[bool] = None
+
+class CardMove(BaseModel):
+    """Schéma pour déplacer une carte"""
+    list_id: int
+    position: int
+
+class CardOut(BaseModel):
+    """Schéma de sortie pour une carte"""
+    id: int
+    title: str
+    description: Optional[str]
+    position: int
+    list_id: int
+    author_id: int
+    due_date: Optional[datetime]
+    is_archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class CardLabelAdd(BaseModel):
+    """Schéma pour ajouter un label à une carte"""
+    label_id: int
+
+# ============================================================================
+# KANBAN - LABELS
+# ============================================================================
+
+class LabelCreate(BaseModel):
+    """Schéma pour la création d'un label"""
+    name: str = Field(min_length=1, max_length=50)
+    color: str = Field(max_length=7, pattern=r'^#[0-9A-Fa-f]{6}$')
+
+class LabelUpdate(BaseModel):
+    """Schéma pour la mise à jour d'un label"""
+    name: Optional[str] = Field(None, min_length=1, max_length=50)
+    color: Optional[str] = Field(None, max_length=7, pattern=r'^#[0-9A-Fa-f]{6}$')
+
+class LabelInDB(BaseModel):
+    """Schéma pour un label en base de données"""
+    id: int
+    name: str
+    color: str
+    board_id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class LabelResponse(LabelInDB):
+    """Schéma de réponse pour un label"""
+    pass
+
+# ============================================================================
 # CONFIGURATION GLOBALE
 # ============================================================================
 

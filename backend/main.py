@@ -11,9 +11,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Import des routers
-# TODO: Fix schema and dependency imports in these routers before enabling
-# from backend.routers import boards, cards, labels, lists
-from backend.routers import users
+from backend.routers import users, boards, cards, labels, lists
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -46,30 +44,29 @@ app.include_router(
     tags=["Users"]
 )
 
-# TODO: Enable these routers after fixing schema and dependency imports
-# app.include_router(
-#     boards.router,
-#     prefix="/api/v1/boards",
-#     tags=["Boards"]
-# )
-#
-# app.include_router(
-#     lists.router,
-#     prefix="/api/v1/lists",
-#     tags=["Lists"]
-# )
-#
-# app.include_router(
-#     cards.router,
-#     prefix="/api/v1/cards",
-#     tags=["Cards"]
-# )
-#
-# app.include_router(
-#     labels.router,
-#     prefix="/api/v1/labels",
-#     tags=["Labels"]
-# )
+app.include_router(
+    boards.router,
+    prefix="/api/v1/boards",
+    tags=["Boards"]
+)
+
+app.include_router(
+    lists.router,
+    prefix="/api/v1/lists",
+    tags=["Lists"]
+)
+
+app.include_router(
+    cards.router,
+    prefix="/api/v1/cards",
+    tags=["Cards"]
+)
+
+app.include_router(
+    labels.router,
+    prefix="/api/v1/labels",
+    tags=["Labels"]
+)
 
 # Endpoints de base
 @app.get("/api", tags=["Root"])
