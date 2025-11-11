@@ -40,15 +40,25 @@ async def get_current_user(
 
     # Check for demo mode token
     if token == "demo-token-no-auth-required":
-        # Return a fake demo user without database access
-        demo_user = User()
-        demo_user.id = UUID("00000000-0000-0000-0000-000000000001")
-        demo_user.email = "demo@kanban.com"
-        demo_user.first_name = "Démo"
-        demo_user.last_name = "Utilisateur"
-        demo_user.role = "user"
-        demo_user.is_active = True
-        demo_user.hashed_password = ""
+        # Get or create demo user in database
+        demo_id = UUID("00000000-0000-0000-0000-000000000001")
+        demo_user = db.query(User).filter(User.id == demo_id).first()
+
+        if not demo_user:
+            # Create demo user in database if it doesn't exist
+            demo_user = User(
+                id=demo_id,
+                email="demo@kanban.com",
+                first_name="Démo",
+                last_name="Utilisateur",
+                role="user",
+                is_active=True,
+                hashed_password="demo-no-password-hash"
+            )
+            db.add(demo_user)
+            db.commit()
+            db.refresh(demo_user)
+
         return demo_user
 
     # Verify and decode the token
@@ -160,14 +170,25 @@ def get_optional_current_user(
 
     # Check for demo mode token
     if token == "demo-token-no-auth-required":
-        demo_user = User()
-        demo_user.id = UUID("00000000-0000-0000-0000-000000000001")
-        demo_user.email = "demo@kanban.com"
-        demo_user.first_name = "Démo"
-        demo_user.last_name = "Utilisateur"
-        demo_user.role = "user"
-        demo_user.is_active = True
-        demo_user.hashed_password = ""
+        # Get or create demo user in database
+        demo_id = UUID("00000000-0000-0000-0000-000000000001")
+        demo_user = db.query(User).filter(User.id == demo_id).first()
+
+        if not demo_user:
+            # Create demo user in database if it doesn't exist
+            demo_user = User(
+                id=demo_id,
+                email="demo@kanban.com",
+                first_name="Démo",
+                last_name="Utilisateur",
+                role="user",
+                is_active=True,
+                hashed_password="demo-no-password-hash"
+            )
+            db.add(demo_user)
+            db.commit()
+            db.refresh(demo_user)
+
         return demo_user
 
     payload = verify_token(token)
