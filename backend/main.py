@@ -12,6 +12,9 @@ import uvicorn
 
 # Import des routers
 from backend.routers import users, boards, cards, labels, lists
+# Import de la base de données et des modèles
+from backend.database import init_db
+from backend import models  # Importer tous les modèles pour SQLAlchemy
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -19,6 +22,14 @@ app = FastAPI(
     description="API REST avec FastAPI pour gestion de tableaux Kanban",
     version="1.0.0"
 )
+
+# Event handler pour initialiser la base de données au démarrage
+@app.on_event("startup")
+async def startup_event():
+    """Initialise la base de données au démarrage de l'application"""
+    print("🔧 Initialisation de la base de données...")
+    init_db()
+    print("✅ Base de données initialisée avec succès")
 
 # Configuration CORS
 ORIGINS = [
