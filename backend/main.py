@@ -4,9 +4,9 @@ Configure CORS, middlewares et monte les routers
 """
 import os
 from pathlib import Path
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
@@ -72,32 +72,16 @@ app.include_router(
 # )
 
 # Endpoints de base
-@app.get("/", tags=["Root"])
-async def root():
-    """Endpoint racine - redirige vers la documentation"""
+@app.get("/api", tags=["Root"])
+async def read_root():
+    """Endpoint racine de l'API"""
     return {
         "message": "Bienvenue sur l'API Kanban Board",
         "status": "running",
-        "documentation": "/docs",
-        "api_docs": "/redoc",
-        "health": "/api/health"
-    }
-
-@app.get("/api", tags=["Root"])
-async def read_root():
-    """Endpoint racine - vérifie que l'API fonctionne"""
-    return {
-        "message": "Bienvenue sur l'API Kanban Board",
+        "version": "1.0.0",
         "docs": "/docs",
         "redoc": "/redoc"
     }
-
-# Servir les fichiers statiques du frontend en production
-# NOTE: This is mounted after API routes so API routes take precedence
-dist_path = Path(__file__).parent.parent / "dist"
-if dist_path.exists():
-    app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
-    # Don't mount at "/" as it would override all routes
 
 @app.get("/api/health", tags=["Health"])
 async def health_check():
@@ -106,6 +90,61 @@ async def health_check():
         status_code=status.HTTP_200_OK,
         content={"status": "healthy", "api": "running"}
     )
+
+# Servir le frontend Vue.js (doit être après toutes les routes API)
+dist_path = Path(__file__).parent.parent / "dist"
+if dist_path.exists():
+    # Servir les assets statiques (JS, CSS, images)
+    if (dist_path / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
+
+    # Route pour la page d'accueil
+    @app.get("/")
+    async def serve_home():
+        """Sert la page d'accueil du frontend Vue.js"""
+        index_path = dist_path / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+        return JSONResponse(
+            content={
+                "message": "Frontend non construit. Accédez à /docs pour l'API.",
+                "api": "/api",
+                "docs": "/docs"
+            }
+        )
+
+    # Servir index.html pour toutes les autres routes (supporte Vue Router)
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Sert le frontend Vue.js pour toutes les routes non-API"""
+        # Ne pas intercepter les routes API
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        # Servir les fichiers statiques s'ils existent
+        file_path = dist_path / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+
+        # Sinon servir index.html (pour Vue Router)
+        index_path = dist_path / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+
+        raise HTTPException(status_code=404, detail="Frontend not found")
+else:
+    # Si le dossier dist n'existe pas, afficher un message
+    @app.get("/")
+    async def serve_home_no_dist():
+        """Message si le frontend n'est pas construit"""
+        return JSONResponse(
+            content={
+                "message": "Frontend non disponible. Accédez à /docs pour l'API.",
+                "api": "/api",
+                "docs": "/docs",
+                "health": "/api/health"
+            }
+        )
 
 # Configuration pour lancer le serveur directement
 if __name__ == "__main__":
