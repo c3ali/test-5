@@ -507,8 +507,8 @@ class CardService:
                             "board_id": card.board_id,
                             "assigned_by": assigned_by_user_id
                         },
-                        title=f"Vous avez été assigné à '{card.title}'",
-                        content=f"{card.assignees[0].username if card.assignees else 'Quelqu'un'} vous a assigné à la carte"
+                        title=f"Vous avez ete assigne a '{card.title}'",
+                        content=f"{card.assignees[0].username if card.assignees else 'Quelquun'} vous a assigne a la carte"
                     )
                 )
             except Exception as e:
@@ -601,49 +601,3 @@ class CardService:
         ).first()
         
         return membership is not None
-```
-
-### Explications de l'implémentation :
-
-1. **Architecture** : Le service utilise un pattern repository avec injection de dépendances (Session DB et NotificationService)
-2. **Gestion de l'historique** : La méthode `_log_history` enregistre toutes les actions avec les valeurs avant/après sérialisées en JSON
-3. **Notifications** : Le service envoie des notifications asynchrones via `NotificationService` avec des destinataires dynamiques
-4. **Permissions** : Vérification fine des accès (board, carte, admin)
-5. **Typage** : Utilisation complète des type hints Python
-6. **Soft Delete** : Les cartes ne sont pas supprimées définitivement mais marquées comme inactives
-7. **Logs** : Journalisation détaillée avec niveaux appropriés
-8. **Gestion des erreurs** : Exceptions personnalisées avec des messages clairs
-
-### Dépendances nécessaires :
-
-```python
-# models/card.py
-class Card(Base):
-    id, title, description, board_id, column_id, 
-    position, status, due_date, created_by, assignees, 
-    labels, is_active, created_at, updated_at
-
-class CardHistory(Base):
-    id, card_id, user_id, action, field_name, 
-    old_value, new_value, comment, created_at
-
-class CardComment(Base):
-    id, card_id, user_id, content, created_at
-
-# core/enums.py
-class CardActionType(Enum):
-    CREATED, UPDATED, DELETED, MOVED, ASSIGNED, COMMENTED, STATUS_CHANGED, DUE_DATE_CHANGED
-
-class NotificationType(Enum):
-    CARD_UPDATE, CARD_ASSIGNED, CARD_DUE_DATE
-
-# services/notification_service.py
-class NotificationService:
-    async def send_notification(...)
-
-# core/exceptions.py
-class CardNotFoundException(Exception): ...
-class PermissionDeniedException(Exception): ...
-```
-
-Ce service est conçu pour être utilisé avec FastAPI et SQLAlchemy, mais peut s'adapter à d'autres framewo

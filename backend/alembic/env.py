@@ -96,33 +96,3 @@ if __name__ == "__main__":
         run_migrations_offline()
     else:
         run_migrations_online()
-```
-
-### Points importants de cette configuration :
-
-1. **Structure du projet** : suppose une organisation type FastAPI :
-   ```
-   backend/
-   ├── alembic/
-   │   ├── env.py
-   │   └── versions/
-   ├── app/
-   │   ├── core/
-   │   │   └── config.py      # Settings de l'application
-   │   ├── db/
-   │   │   └── base.py        # Déclaration de Base
-   │   └── models/            # Vos modèles SQLAlchemy
-   ```
-
-2. **Configuration dynamique** : utilise `settings.DATABASE_URL` au lieu de hardcoder les credentials
-
-3. **Détection automatique** : importe tous les modèles pour que Alembic puisse les détecter
-
-4. **Options robustes** :
-   - `compare_type=True` : détecte les changements de types de colonnes
-   - `compare_server_default=True` : détecte les changements de valeurs par défaut
-   - `include_schemas=True` : supporte les schémas PostgreSQL
-
-5. **Flexibilité** : fonctionne en mode offline et online
-
-**Note** : Assurez-vous que `app.core.config.settings` expose bien une variable `DATABASE_URL` et que `app.db.base.Base` est votre déclaration de base SQLAlch
