@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Tabl
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.declarative import declarative_base
-from typing import List, Optional
+from typing import Optional
 
 Base = declarative_base()
 
@@ -47,28 +47,28 @@ class User(Base):
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relations
-    boards_owned: Mapped[List["Board"]] = relationship(
+    boards_owned: Mapped[list["Board"]] = relationship(
         "Board", 
         back_populates="owner", 
         foreign_keys="Board.owner_id",
         cascade="all, delete-orphan"
     )
-    boards: Mapped[List["Board"]] = relationship(
+    boards: Mapped[list["Board"]] = relationship(
         "Board", 
         secondary=board_members, 
         back_populates="members"
     )
-    cards_created: Mapped[List["Card"]] = relationship(
+    cards_created: Mapped[list["Card"]] = relationship(
         "Card", 
         back_populates="author", 
         foreign_keys="Card.author_id"
     )
-    cards_assigned: Mapped[List["Card"]] = relationship(
+    cards_assigned: Mapped[list["Card"]] = relationship(
         "Card", 
         secondary=card_members, 
         back_populates="members"
     )
-    comments: Mapped[List["Comment"]] = relationship(
+    comments: Mapped[list["Comment"]] = relationship(
         "Comment", 
         back_populates="author",
         cascade="all, delete-orphan"
@@ -95,17 +95,17 @@ class Board(Base):
         back_populates="boards_owned", 
         foreign_keys=[owner_id]
     )
-    members: Mapped[List["User"]] = relationship(
+    members: Mapped[list["User"]] = relationship(
         "User", 
         secondary=board_members, 
         back_populates="boards"
     )
-    lists: Mapped[List["List"]] = relationship(
+    lists: Mapped[list["List"]] = relationship(
         "List", 
         back_populates="board", 
         cascade="all, delete-orphan"
     )
-    labels: Mapped[List["Label"]] = relationship(
+    labels: Mapped[list["Label"]] = relationship(
         "Label", 
         back_populates="board", 
         cascade="all, delete-orphan"
@@ -126,7 +126,7 @@ class List(Base):
     
     # Relations
     board: Mapped["Board"] = relationship("Board", back_populates="lists")
-    cards: Mapped[List["Card"]] = relationship(
+    cards: Mapped[list["Card"]] = relationship(
         "Card", 
         back_populates="list", 
         cascade="all, delete-orphan"
@@ -156,17 +156,17 @@ class Card(Base):
         back_populates="cards_created", 
         foreign_keys=[author_id]
     )
-    members: Mapped[List["User"]] = relationship(
+    members: Mapped[list["User"]] = relationship(
         "User", 
         secondary=card_members, 
         back_populates="cards_assigned"
     )
-    labels: Mapped[List["Label"]] = relationship(
+    labels: Mapped[list["Label"]] = relationship(
         "Label", 
         secondary=card_labels, 
         back_populates="cards"
     )
-    comments: Mapped[List["Comment"]] = relationship(
+    comments: Mapped[list["Comment"]] = relationship(
         "Comment", 
         back_populates="card",
         cascade="all, delete-orphan"
@@ -186,7 +186,7 @@ class Label(Base):
     
     # Relations
     board: Mapped["Board"] = relationship("Board", back_populates="labels")
-    cards: Mapped[List["Card"]] = relationship(
+    cards: Mapped[list["Card"]] = relationship(
         "Card", 
         secondary=card_labels, 
         back_populates="labels"
