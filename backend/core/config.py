@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/kanban")
+    # Use SQLite by default for simplicity. For production with PostgreSQL, set DATABASE_URL env var.
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./kanban.db")
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production-please-use-a-strong-random-key")

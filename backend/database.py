@@ -1,6 +1,7 @@
 # backend/database.py
 """
-Configuration SQLAlchemy et gestion de la connexion PostgreSQL.
+Configuration SQLAlchemy et gestion de la connexion à la base de données.
+Supporte SQLite (par défaut) et PostgreSQL via DATABASE_URL.
 Fournit le moteur, la session et la base pour les modèles SQLAlchemy.
 """
 
@@ -9,34 +10,26 @@ from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
-from urllib.parse import quote_plus
+from backend.core.config import settings
 
 # --- Configuration de la base de données ---
 
-# Récupération des variables d'environnement (convention 12-factor app)
-DB_USER = os.getenv("POSTGRES_USER", "postgres")
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
-DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_PORT = os.getenv("POSTGRES_PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_DB", "app_db")
-
-def get_database_url() -> str:
-    """
-    Construit l'URL de connexion PostgreSQL avec encodage du mot de passe 
-    pour gérer les caractères spéciaux de manière sécurisée.
-    """
-    encoded_password = quote_plus(DB_PASSWORD)
-    return f"postgresql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Utilise DATABASE_URL de config.py (SQLite par défaut, PostgreSQL si configuré)
+DATABASE_URL = settings.DATABASE_URL
 
 # --- Création du moteur SQLAlchemy ---
 
+# Configuration adaptée selon le type de base de données
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    # SQLite nécessite check_same_thread=False pour FastAPI
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
-    get_database_url(),
+    DATABASE_URL,
+    connect_args=connect_args,
     # Vérifie la connexion avant chaque requête (évite les erreurs de connexion inactives)
     pool_pre_ping=True,
-    # Taille du pool de connexions
-    pool_size=10,
-    max_overflow=20,
     # Affiche les requêtes SQL en console (utile pour le développement)
     echo=os.getenv("SQLALCHEMY_ECHO", "false").lower() == "true"
 )
