@@ -11,7 +11,9 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Import des routers
-from backend.routers import boards, cards, labels, lists, users
+# TODO: Fix schema and dependency imports in these routers before enabling
+# from backend.routers import boards, cards, labels, lists
+from backend.routers import users
 
 # Création de l'application FastAPI
 app = FastAPI(
@@ -44,29 +46,30 @@ app.include_router(
     tags=["Users"]
 )
 
-app.include_router(
-    boards.router,
-    prefix="/api/v1/boards",
-    tags=["Boards"]
-)
-
-app.include_router(
-    lists.router,
-    prefix="/api/v1/lists",
-    tags=["Lists"]
-)
-
-app.include_router(
-    cards.router,
-    prefix="/api/v1/cards",
-    tags=["Cards"]
-)
-
-app.include_router(
-    labels.router,
-    prefix="/api/v1/labels",
-    tags=["Labels"]
-)
+# TODO: Enable these routers after fixing schema and dependency imports
+# app.include_router(
+#     boards.router,
+#     prefix="/api/v1/boards",
+#     tags=["Boards"]
+# )
+#
+# app.include_router(
+#     lists.router,
+#     prefix="/api/v1/lists",
+#     tags=["Lists"]
+# )
+#
+# app.include_router(
+#     cards.router,
+#     prefix="/api/v1/cards",
+#     tags=["Cards"]
+# )
+#
+# app.include_router(
+#     labels.router,
+#     prefix="/api/v1/labels",
+#     tags=["Labels"]
+# )
 
 # Servir les fichiers statiques du frontend en production
 dist_path = Path(__file__).parent.parent / "dist"

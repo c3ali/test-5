@@ -10,14 +10,15 @@ from sqlalchemy.exc import IntegrityError
 
 from backend.database import get_db
 from backend.models import User, Board
-from backend.schemas.board import (
-    BoardCreate,
-    BoardUpdate,
-    BoardOut,
-    CollaboratorAdd,
-    CollaboratorOut,
-    CollaboratorUpdate
-)
+# TODO: Implement these schemas in backend/schemas.py
+# from backend.schemas import (
+#     BoardCreate,
+#     BoardUpdate,
+#     BoardOut,
+#     CollaboratorAdd,
+#     CollaboratorOut,
+#     CollaboratorUpdate
+# )
 from backend.dependencies.auth import get_current_active_user
 from backend.core.permissions import (
     check_board_access,
